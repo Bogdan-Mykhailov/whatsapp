@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {
-  ActivityIndicator,
+  ActivityIndicator, Alert,
   KeyboardAvoidingView,
   Linking,
   Platform,
@@ -15,6 +15,7 @@ import {Ionicons} from "@expo/vector-icons";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import MaskInput from "react-native-mask-input/src/MaskInput";
 import {UKR_PHONE_FORMAT} from "@/constants/constants";
+import {isClerkAPIResponseError, useSignIn, useSignUp} from "@clerk/clerk-expo";
 
 const Page = () => {
   const [loading, setLoading] = useState(false);
@@ -22,6 +23,8 @@ const Page = () => {
   const router = useRouter();
   const keyboardVerticalOffset = Platform.OS === 'ios' ? 90 : 0;
   const {bottom} = useSafeAreaInsets();
+  const { signUp, setActive } = useSignUp();
+  const { signIn } = useSignIn();
 
   const openLink = () => {
     Linking.openURL('https://bogdan-mykhailov.github.io/myPortfolio/')
@@ -29,18 +32,50 @@ const Page = () => {
 
   const sendOTP = async () => {
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await signUp!.create({
+        phoneNumber
+      });
+
+      signUp!.preparePhoneNumberVerification();
+
       router.push(`/verify/${phoneNumber}`)
-    }, 1000);
+    } catch (err) {
+      console.log(err);
+      if (isClerkAPIResponseError(err)) {
+        if (err.errors[0].code === 'form_identifier_exist') {
+          console.log('user exist');
+          await trySignIn();
+        } else {
+          setLoading(false);
+          Alert.alert('Error', err.errors[0].message);
+        }
+      }
+    }
   };
 
   const trySignIn = async () => {
+    const { supportedFirstFactors } = await signIn!.create({
+      identifier: phoneNumber,
+    });
 
+    const firstPhoneFactor: any = supportedFirstFactors.find((factor: any) => {
+      return factor.strategy === 'phone_code';
+    });
+
+    const { phoneNumberId } = firstPhoneFactor;
+
+    await signIn!.prepareFirstFactor({
+      strategy: 'phone_code',
+      phoneNumberId
+    });
+
+    router.push(`/verify/${phoneNumber}?signin=true`);
+    setLoading(false);
   };
 
   return (
-    <KeyboardAvoidingView style={{flex: 1,}}>
+    <KeyboardAvoidingView behavior='padding' keyboardVerticalOffset={keyboardVerticalOffset} style={{flex: 1,}}>
       <View style={styles.container}>
         {loading && (
           <View style={styles.loading}>
@@ -107,8 +142,6 @@ const Page = () => {
     </KeyboardAvoidingView>
   );
 };
-
-export default Page;
 
 const styles = StyleSheet.create({
   container: {
@@ -184,3 +217,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
+export default Page

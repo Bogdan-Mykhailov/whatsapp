@@ -6,7 +6,7 @@ import {Link} from "expo-router";
 
 const welcome_image = Image.resolveAssetSource(welcomeImage).uri;
 
-const Page = () => {
+const WelcomeScreen = () => {
   const openLink = () => {
     Linking.openURL('https://bogdan-mykhailov.github.io/myPortfolio/')
   }
@@ -74,4 +74,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default Page;
+export default WelcomeScreen;
