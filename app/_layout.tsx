@@ -84,7 +84,7 @@ const InitialLayout = () => {
         name="verify/[phone]"
         options={{headerBackTitle: 'Edit number'}}
       />
-      <Stack.Screen name='(tabs)' options={{ headerShown: false }}/>
+      <Stack.Screen name='(tabs)' options={{headerShown: false}}/>
     </Stack>);
 }
 
