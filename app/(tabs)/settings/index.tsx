@@ -3,7 +3,7 @@ import {ScrollView, Text, TouchableOpacity, View} from 'react-native';
 import Colors from "@/constants/Colors";
 import {useAuth} from "@clerk/clerk-expo";
 import {SettingsRow} from "@/components/SettingsRow";
-import {devices, items, support} from "@/api/settings/data";
+import {devices, items, support} from "@/assets/data/settings/data";
 
 const Page = () => {
   const {signOut} = useAuth();
